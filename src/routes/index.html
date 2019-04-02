@@ -5,7 +5,10 @@
 <div ref:map id="mapid"></div>
 
 <style>
-	#mapid { height: 100vh; }
+	#mapid {
+    height: 100vh;
+    width: 100vw;
+  }
 </style>
 
 <script>
@@ -17,21 +20,18 @@
       if (isBrowser()) {
         let { default: { Map, tileLayer, circle, marker }} = await import('leaflet')
         let map = new Map(this.refs.map, {
-          center: [51.505, -0.09],
-          zoom: 13
         })
+        let m,c,last
         map.on('locationfound', e => {
+          last = e
           var radius = e.accuracy / 2;
-          marker(e.latlng).addTo(map)
-            .bindPopup("You are within " + radius + " meters from this point").openPopup();
-          circle(e.latlng, radius).addTo(map);
+          if (m) m.remove()
+          m = marker(e.latlng).addTo(map).bindPopup(radius + " meters").openPopup();
+          if (c) c.remove()
+          c = circle(e.latlng, radius).addTo(map);
         });
         map.locate({watch: true, setView: true, enableHighAccuracy: true})
-        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        }).addTo(map);
-      }
-      if (navigator.geolocation) {
-        //navigator.geolocation.getCurrentPosition(console.log, console.error, {maximumAge:10000, timeout:5000, enableHighAccuracy: true})
+        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
       }
     }
   };
