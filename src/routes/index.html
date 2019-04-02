@@ -1,0 +1,38 @@
+<svelte:head>
+	<title>Sapper project template</title>
+</svelte:head>
+
+<div ref:map id="mapid"></div>
+
+<style>
+	#mapid { height: 100vh; }
+</style>
+
+<script>
+	import 'leaflet/dist/leaflet.css'
+	let isBrowser = new Function("try {return this===window;}catch(e){ return false;}");
+
+  export default {
+    async oncreate() {
+      if (isBrowser()) {
+        let { default: { Map, tileLayer, circle, marker }} = await import('leaflet')
+        let map = new Map(this.refs.map, {
+          center: [51.505, -0.09],
+          zoom: 13
+        })
+        map.on('locationfound', e => {
+          var radius = e.accuracy / 2;
+          marker(e.latlng).addTo(map)
+            .bindPopup("You are within " + radius + " meters from this point").openPopup();
+          circle(e.latlng, radius).addTo(map);
+        });
+        map.locate({watch: true, setView: true, enableHighAccuracy: true})
+        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        }).addTo(map);
+      }
+      if (navigator.geolocation) {
+        //navigator.geolocation.getCurrentPosition(console.log, console.error, {maximumAge:10000, timeout:5000, enableHighAccuracy: true})
+      }
+    }
+  };
+</script>
