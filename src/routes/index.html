@@ -15,14 +15,19 @@
   import 'leaflet/dist/leaflet.css'
   import 'leaflet-easybutton/src/easy-button.css'
   import secrets from '../secrets.js'
-	let isBrowser = new Function("try {return this===window;}catch(e){ return false;}");
+  
+  let isBrowser = new Function("try {return this===window;}catch(e){ return false;}");
+  let firebase$
+  if (isBrowser()) {
+    firebase$ = new Promise((resolve, reject) => resolve(import('firebase/app')))
+      .then(module => import('firebase/firestore').then(() => module.default))
+      .then(firebase => firebase.initializeApp(secrets))
+  }
 
   export default {
     async oncreate() {
       if (isBrowser()) {
-        let { default: firebase } = await import('firebase/app')
-        await import('firebase/firestore')
-        firebase.initializeApp(secrets)
+        let firebase = await firebase$
         let db = firebase.firestore()
         let { default: L } = await import('leaflet')
         await import('leaflet-easybutton')
